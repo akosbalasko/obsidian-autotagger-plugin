@@ -1,0 +1,10 @@
+{
+	"id": "obsidian-autotagger-plugin",
+	"name": "Autotagger Plugin",
+	"version": "0.0.1",
+	"minAppVersion": "0.12.1",
+	"description": "",
+	"author": "Akos Balasko",
+	"authorUrl": "https://github.com/akosbalasko",
+	"isDesktopOnly": false
+}
