@@ -2,21 +2,15 @@
 import { Plugin, WorkspaceLeaf, PluginSettingTab, App, Setting, } from 'obsidian';
 import { AUTOTAGGER_TYPE } from './constants';
 import AutotaggerView from './AutotaggerView';
-
 import type { AutotaggerPluginSettings } from './AutotaggerPluginSettings';
+import { settings } from './stores';
+
 // const removeMd = require('remove-markdown');
 
 const VIEW_TYPE_AUTOTAGGER = 'autotagger';
 
-const DEFAULT_SETTINGS: AutotaggerPluginSettings = {
-	extractOrganizations: true,
-	extractPeople: true,
-	extractPlaces: true,
-
-}
-
 export default class AutotaggerPlugin extends Plugin {
-	settings: AutotaggerPluginSettings;
+	options: AutotaggerPluginSettings;
     private view: AutotaggerView;
 
 	onunload(): void {
@@ -26,10 +20,16 @@ export default class AutotaggerPlugin extends Plugin {
 	}
 
 	async onload(): Promise<void> {
-		await this.loadSettings();
+		this.register(
+			settings.subscribe((value) => {
+				this.options = value;
+			})
+		);
+		
+		await this.loadOptions();
 		this.registerView(
             AUTOTAGGER_TYPE,
-            (leaf: WorkspaceLeaf) => (this.view = new AutotaggerView(leaf, this.settings))
+            (leaf: WorkspaceLeaf) => (this.view = new AutotaggerView(leaf, this.options))
         );
 
 		this.addRibbonIcon('price-tag-glyph', 'Show autoTagger panel', () =>
@@ -62,14 +62,32 @@ export default class AutotaggerPlugin extends Plugin {
             .setViewState({ type: AUTOTAGGER_TYPE });
     }
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+	/* async loadSettings() {
+		this.options = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+	}*/
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		await this.saveData(this.options);
 	}
 
+	async loadOptions(): Promise<void> {
+		const options = await this.loadData();
+		settings.update((old) => {
+			return {
+				...old,
+				...(options || {}),
+			};
+		});
+	
+		await this.saveData(this.options);
+	}
+	
+	async writeOptions(
+		changeOpts: (settings: AutotaggerPluginSettings) => Partial<AutotaggerPluginSettings>
+	): Promise<void> {
+		settings.update((old) => ({ ...old, ...changeOpts(old) }));
+		await this.saveData(this.options);
+	}
 
 }
 
@@ -90,29 +108,50 @@ class AutotaggerPluginSettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Extract persons:')
             .addToggle(tc => tc
-            .setValue(this.plugin.settings.extractPeople)
+            .setValue(this.plugin.options.extractPeople)
             .onChange(async (value) => {
             console.debug('Extract people: ' + value);
-            this.plugin.settings.extractPeople = value;
+            this.plugin.options.extractPeople = value;
             await this.plugin.saveSettings();
 		}));
 		new Setting(containerEl)
 			.setName('Extract organization:')
 			.addToggle(tc => tc
-			.setValue(this.plugin.settings.extractOrganizations)
+			.setValue(this.plugin.options.extractOrganizations)
 			.onChange(async (value) => {
 			console.debug('Extract organizations: ' + value);
-			this.plugin.settings.extractOrganizations = value;
+			this.plugin.options.extractOrganizations = value;
 			await this.plugin.saveSettings();
 		}));
 		new Setting(containerEl)
 			.setName('Extract places:')
 			.addToggle(tc => tc
-			.setValue(this.plugin.settings.extractPlaces)
+			.setValue(this.plugin.options.extractPlaces)
 			.onChange(async (value) => {
 			console.debug('Extract places: ' + value);
-			this.plugin.settings.extractPlaces = value;
+			this.plugin.options.extractPlaces = value;
 			await this.plugin.saveSettings();
 		}));
+		new Setting(containerEl)
+			.setName('Extract acronyms:')
+			.addToggle(tc => tc
+			.setValue(this.plugin.options.extractAcronyms)
+			.onChange(async (value) => {
+			console.debug('Extract acronyms: ' + value);
+			this.plugin.options.extractAcronyms = value;
+			await this.plugin.saveSettings();
+		}));
+
+		new Setting(containerEl)
+			.setName('Extract mentions:')
+			.addToggle(tc => tc
+			.setValue(this.plugin.options.extractMentions)
+			.onChange(async (value) => {
+			console.debug('Extract mentions: ' + value);
+			this.plugin.options.extractMentions = value;
+			await this.plugin.saveSettings();
+		}));
+
 	}
+
 }

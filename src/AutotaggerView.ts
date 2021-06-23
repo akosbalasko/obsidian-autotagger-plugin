@@ -1,21 +1,29 @@
 import { ItemView, WorkspaceLeaf } from 'obsidian';
-import { getAutoTags } from './AutoTaggerImpl';
+import { getAutoTags } from './AutoTagger';
 import type { AutotaggerPluginSettings } from './AutotaggerPluginSettings';
 import AutoTagger from './AutoTagger.svelte';
 import { AUTOTAGGER_TYPE } from './../src/constants';
+import { settings } from './stores';
 
 export default class AutotaggerView extends ItemView {
-    settings: AutotaggerPluginSettings;
+    options: AutotaggerPluginSettings;
     autoTagger: AutoTagger;
     
-    constructor(leaf: WorkspaceLeaf, settings: AutotaggerPluginSettings) {
+    constructor(leaf: WorkspaceLeaf, options: AutotaggerPluginSettings, ) {
         super(leaf);
-        this.settings = settings;
+        this.options = options;
         this.redraw = this.redraw.bind(this);
         
         this.registerEvent(this.app.metadataCache.on('resolved', this.redraw));
         this.registerEvent(this.app.metadataCache.on('changed', this.redraw));
-        this.registerEvent(this.app.workspace.on('active-leaf-change', this.redraw))
+        this.registerEvent(this.app.workspace.on('active-leaf-change', this.redraw));
+
+        this.register(
+			settings.subscribe((value) => {
+                this.options = value;
+                this.redraw();
+			})
+		);
     }
 
     getViewType(): string {
@@ -38,7 +46,7 @@ export default class AutotaggerView extends ItemView {
 
     async onOpen(): Promise<void> {
        console.log('opening');
-       const autoTags: Map<string, string> = getAutoTags(this.app, this.settings);
+       const autoTags: Map<string, string> = getAutoTags(this.app, this.options);
 
        this.autoTagger = new AutoTagger({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,7 +61,7 @@ export default class AutotaggerView extends ItemView {
 
     public async redraw(): Promise<void> {
         console.log('redrawing');
-        const autoTags = getAutoTags(this.app, this.settings);
+        const autoTags = getAutoTags(this.app, this.options);
         this.autoTagger?.$set({ autoTags });
         
 

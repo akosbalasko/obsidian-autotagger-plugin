@@ -9,7 +9,7 @@ export const getAutoTags = (app: App, settings: AutotaggerPluginSettings): Map<s
 
 		const content = doc.getValue().replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
 		const plainAnalysis = nlp(content);
-
+		console.log(JSON.stringify(plainAnalysis));
 		const suggestions = [];
 		if (settings.extractPlaces)
 			suggestions.push(...plainAnalysis.places().json());
@@ -17,13 +17,18 @@ export const getAutoTags = (app: App, settings: AutotaggerPluginSettings): Map<s
 			suggestions.push(...plainAnalysis.people().json());
 		if (settings.extractOrganizations)
 			suggestions.push(...plainAnalysis.organizations().json());
+		if (settings.extractAcronyms)
+			suggestions.push(...plainAnalysis.acronyms().json());
 
+		if (settings.extractMentions)
+			suggestions.push(...plainAnalysis.atMentions().json({normal:true}));
+		console.log(`settings: ${JSON.stringify(settings)}`)
 		console.log("plain suggestions:" +  JSON.stringify(suggestions));
 		const suggestedTags = suggestions
 			.map(suggestion => suggestion.terms
 				.reduce((acc, curr) => acc = `${acc} ${curr.text}`, '')
 			)
-			.map(tag => cleanTag(tag));
+			.map(tag => cleanAndConvertTag(tag));
 		const cleanTags = new Map(suggestedTags.map(tag => [tag, tag]));
         console.log("content: " + JSON.stringify(suggestedTags));
         
@@ -33,7 +38,7 @@ export const getAutoTags = (app: App, settings: AutotaggerPluginSettings): Map<s
 	return new Map();
 }
 
-const cleanTag = (tag: string): string => {
+const cleanAndConvertTag = (tag: string): string => {
     // eslint-disable-next-line no-useless-escape
-    return tag.replace(/\[?([^\[\]]*)\]?\((.*?)\)/gm, '$1');
+    return `#${tag.trim().replace(/\[?([^\[\]]*)\]?\((.*?)\)/gm, '$1').replace(/ /gm, '-').replace(/^@/gm, '').toLocaleLowerCase()}`;
 }
