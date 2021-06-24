@@ -9,7 +9,7 @@ export const getAutoTags = (app: App, settings: AutotaggerPluginSettings): Map<s
 
 		const content = doc.getValue().replace(/(?:__|[*#])|\[(.*?)\]\(.*?\)/gm, '$1');
 		const plainAnalysis = nlp(content);
-		console.log(JSON.stringify(plainAnalysis));
+		console.debug(JSON.stringify(plainAnalysis));
 		const suggestions = [];
 		if (settings.extractPlaces)
 			suggestions.push(...plainAnalysis.places().json());
@@ -22,15 +22,15 @@ export const getAutoTags = (app: App, settings: AutotaggerPluginSettings): Map<s
 
 		if (settings.extractMentions)
 			suggestions.push(...plainAnalysis.atMentions().json({normal:true}));
-		console.log(`settings: ${JSON.stringify(settings)}`)
-		console.log("plain suggestions:" +  JSON.stringify(suggestions));
+		console.debug(`settings: ${JSON.stringify(settings)}`)
+		console.debug("plain suggestions:" +  JSON.stringify(suggestions));
 		const suggestedTags = suggestions
 			.map(suggestion => suggestion.terms
 				.reduce((acc, curr) => acc = `${acc} ${curr.text}`, '')
 			)
 			.map(tag => cleanAndConvertTag(tag));
 		const cleanTags = new Map(suggestedTags.map(tag => [tag, tag]));
-        console.log("content: " + JSON.stringify(suggestedTags));
+        console.debug("content: " + JSON.stringify(suggestedTags));
         
 		return cleanTags;
 	}

@@ -1,7 +1,7 @@
 {
   "name": "obsidian-autotagger-plugin",
-  "version": "0.0.1",
-  "description": "This plugin offers tags based on the content of the note.",
+  "version": "0.5.0",
+  "description": "This plugin offers smart tags for notes by performing Named Entity Recognition (NER) on the their content.",
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",

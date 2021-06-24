@@ -45,7 +45,7 @@ export default class AutotaggerView extends ItemView {
 
 
     async onOpen(): Promise<void> {
-       console.log('opening');
+       console.debug('opening');
        const autoTags: Map<string, string> = getAutoTags(this.app, this.options);
 
        this.autoTagger = new AutoTagger({
@@ -60,7 +60,6 @@ export default class AutotaggerView extends ItemView {
     }
 
     public async redraw(): Promise<void> {
-        console.log('redrawing');
         const autoTags = getAutoTags(this.app, this.options);
         this.autoTagger?.$set({ autoTags });
         

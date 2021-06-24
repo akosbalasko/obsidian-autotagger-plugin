@@ -13,14 +13,14 @@
 
     function init() {
         redraw();
-        console.log("redrawn from init");
-        console.log(`autotags: ${JSON.stringify(autoTags)}`)
+        console.debug("redrawn from init");
+        console.debug(`autotags: ${JSON.stringify(autoTags)}`)
     }
 
     const copy = () => {
 		textarea.select();
         document.execCommand('copy');
-        alert('autotags copied to clipboard');
+        // alert('autotags copied to clipboard');
     };
 
 </script>
